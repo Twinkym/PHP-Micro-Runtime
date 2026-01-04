@@ -6,11 +6,13 @@ declare(strict_types=1);
 require __DIR__ . '/../vendor/autoload.php';
 
 use MicroRuntime\Infrastructure\Socket\TcpSocket;
+use MicroRuntime\Application\Runtime;
 
 echo "PHP Micro Runtime booting...\n";
 
 $socket = new TcpSocket('127.0.0.1', 8080);
+$runtime = new Runtime($socket);
 
-$socket->listen(function (string $input): string {
+$runtime->run(function (string $input): string {
     return "Hello from PHP Micro Runtime\n";
 });

@@ -8,6 +8,7 @@ final class TcpSocket
 {
     private string $host;
     private int $port;
+    private $socket;
 
     public function __construct(string $host, int $port)
     {
@@ -15,30 +16,39 @@ final class TcpSocket
         $this->port = $port;
     }
 
-    public function listen(callable $handler): void
+    public function open(): void
     {
-        $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-        socket_bind($socket, $this->host, $this->port);
-        socket_listen($socket);
+        $this->socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+        socket_bind($this->socket, $this->host, $this->port);
+        socket_listen($this->socket);
 
         echo "Listening on {$this->host}:{$this->port}\n";
+    }
 
-        $client = socket_accept($socket);
+    public function accept()
+    {
+        return socket_accept($this->socket);
+    }
 
-        if ($client === false) {
-            echo "Failed to accept connection\n";
-            socket_close($socket);
-            return;
-        }
+    public function read($client, int $length = 1024): string
+    {
+        return socket_read($client, $length) ?: '';
+    }
 
-        $input = socket_read($client, 1024) ?: '';
+    public function write($client, string $data): void
+    {
+        socket_write($client, $data);
+    }
 
-        $response = $handler($input);
-
-        socket_write($client, $response);
-
+    public function closeClient($client): void
+    {
         socket_close($client);
-        socket_close($socket);      
+
+    }
+
+    public function close(): void 
+    {
+        socket_close($this->socket);
     }
 }
 
