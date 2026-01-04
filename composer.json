@@ -1,0 +1,13 @@
+{
+    "name": "kd-tech/php-micro-runtime",
+    "description": "Micro runtime HTTP educativo en PHP",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "MicroRuntime\\": "src/"
+        }
+    },
+    "require": {
+        "php": ">=8.2"
+    }
+}
