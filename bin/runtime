@@ -7,12 +7,17 @@ require __DIR__ . '/../vendor/autoload.php';
 
 use MicroRuntime\Infrastructure\Socket\TcpSocket;
 use MicroRuntime\Application\Runtime;
+use MicroRuntime\Application\Http\Router;
+use MicroRuntime\Domain\Http\Response;
 
 echo "PHP Micro Runtime booting...\n";
 
 $socket = new TcpSocket('127.0.0.1', 8080);
-$runtime = new Runtime($socket);
 
-$runtime->run(function (string $input): string {
-    return "Hello from PHP Micro Runtime\n";
-});
+$router = new Router();
+$router->get('/', fn () => new Response("Home, Welcome from PHP Micro Runtime!\n"));
+$router->get('/health', fn () => new Response("OK\n"));
+
+$runtime = new Runtime($socket, $router);
+
+$runtime->run();

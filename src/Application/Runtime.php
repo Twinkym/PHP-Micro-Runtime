@@ -7,19 +7,22 @@ namespace MicroRuntime\Application;
 use MicroRuntime\Infrastructure\Socket\TcpSocket;
 use MicroRuntime\Domain\Http\Request;
 use MicroRuntime\Domain\Http\Response;
+use MicroRuntime\Application\Http\Router;
 
 
 final class Runtime
 {
     private TcpSocket $socket;
+    private Router $router;
     private bool $running = true;
 
-    public function __construct(TcpSocket $socket)
+    public function __construct(TcpSocket $socket, Router $router)
     {
         $this->socket = $socket;
+        $this->router = $router;
     }
 
-    public function run(callable $handler): void 
+    public function run(): void 
     {
         $this->socket->open();
 
@@ -33,13 +36,10 @@ final class Runtime
             $input = $this->socket->read($client);
             
             $request = Request::fromRaw($input);
-
-            $response = new Response(
-                "Hello from PHP Micro Runtime!\n"
-            );
+            $response = $this->router->dispatch($request);
 
             $this->socket->write($client, $response->toHttpString());
-            // $this->socket->closeClient($client);
+            $this->socket->closeClient($client);
         }
 
         $this->socket->close();
