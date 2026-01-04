@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace MicroRuntime\Application;
 
 use MicroRuntime\Infrastructure\Socket\TcpSocket;
+use MicroRuntime\Domain\Http\Request;
+use MicroRuntime\Domain\Http\Response;
+
 
 final class Runtime
 {
@@ -28,10 +31,15 @@ final class Runtime
             }
 
             $input = $this->socket->read($client);
-            $output = $handler($input);
+            
+            $request = Request::fromRaw($input);
 
-            $this->socket->write($client, $output);
-            $this->socket->closeClient($client);
+            $response = new Response(
+                "Hello from PHP Micro Runtime!\n"
+            );
+
+            $this->socket->write($client, $response->toHttpString());
+            // $this->socket->closeClient($client);
         }
 
         $this->socket->close();
