@@ -1,0 +1,218 @@
+1️⃣ Propósito del proyecto
+
+PHP Micro Runtime es un proyecto educativo cuyo objetivo es comprender cómo
+funciona internamente el ciclo request-response de un servidor HTTP, 
+utilizando PHP como herramienta de aprendizaje, no como solución de producción.
+
+2️⃣ Qué ES el proyecto
+
+· Un runtime HTTP mínimo.
+· Un proceso largo controlado.
+· Un laboratorio de arquitectura.
+· Un proyecto de aprendizaje profundo.
+· Un proyecto documentado y testeado.
+
+3️⃣ Qué NO es el proyecto (muy importante).
+
+· ❌ No es un reemplazo de Apache / Nginx.
+· ❌ No es un servidor de producción.
+· ❌ No soporta alta concurrencia.
+· ❌ No implementa HTTP completo.
+· ❌ No gestiona TLS real.
+
+4️⃣ Alcance funcional (v1.0 educativa)
+
+El runtime será capaz de:
+
+· Escuchar en un puerto TCP.
+· Aceptar conxiones secuenciales.
+· Leer una petición HTTP simple.
+· Pasear:
+    · método.
+    · URI.
+    · headers básicos.
+· Construir una respuesta HTTP válida.
+· Escribirla en el socket.
+· Cerrar la conexión limpiamente.
+
+5️⃣ Límites técnicos conscientes.
+
+· Una conexión a la vez.
+· Sin multithreading.
+· Sin async avanzado.
+· Sin keep-alive complejo.
+· Sin body parsing avanzado.
+
+6️⃣ Arquitectura conceptual (alto nivel)
+
+Capas previstas:
+    · Domain
+        · Request
+        · Response
+    · Application
+        · Runtime
+        · Lifecycle
+    · Infraestructure
+        · Socket
+        · IO
+        · Config
+        · Logger
+Separación estricta.
+Responsabilidades claras.
+Nada de clases "Dios".
+
+🧱 Arquitectura del ciclo Request-Response
+
+1️⃣ Vista general del ciclo
+
+Describe el ciclo completo, a alto nivel:
+
+1. El runtime inicia.
+2. Se abre un socket TCP.
+3. El runtime espera conexiones.
+4. Un cliente se conecta.
+5. Se lee la petición cruda.
+6. Se transforma en un Request.
+7. El sistema genera una Response.
+8. Se escribe la respuesta en el socket.
+9. Se cierra la conexión.
+10. El runtime vuelve a esperar conexiones.
+
+2️⃣ Componentes implicados
+
+Define claramente los actores:
+
+    · Runtime
+        · Orquesta el ciclo.
+        · Controla el bucle de ejecución.
+    · Socket (Infraestructure)
+        · Comunicación de bajo nivel.
+        · Lectura / escritura.
+    · Request (Domain)
+        · Representa la petición HTTP.
+        · Es inmutable (conceptualmente).
+    · Response (Domain)
+        · Representa la respuesta HTTP.
+        · Construida por la aplicación.
+
+3️⃣ Separación de responsabilidades (clave)
+
+· Runtime NO parsea HTTP.
+· Socket NO sabe qué es HTTP.
+· Request NO accede al socket.
+· Response NO escribe en red.
+
+Principio de responsabilidad única.
+
+4️⃣ Flujo detallado (paso a paso)
+
+- El Runtime delega en la capa Infraestructure la apertura del socket.
+- Una vez Aceptada una conexión, el Runtime solicita al componente IO la lectura del byffer.
+- El contenido leído se pasa a un parser que construye un objeto Request....
+
+5️⃣ Errores y casos límite (sin implementar)
+
+· Petición mal formada.
+· Lectura incompleta.
+· Método no soportado.
+· Error interno.
+
+6️⃣ Decisiones conscientes
+
+· Una conexión a la vez.
+· Modelo sincrono.
+· Request inmutable.
+· Response construida completamente antes de enviarse.
+
+🔍 Investigación: sockets y límites en PHP
+
+1️⃣ Modelo de ejecución de PHP
+
+· Está pensado para request/response corto.
+· No procesos interminables.
+· Puedes ejecutar procesos largos, pero con cuidado.
+
+Conclusión:
+    PHP puede ejecutar un runtime largo, pero no es su caso de uso principal.
+
+2️⃣ Extensión sockets en PHP
+
+Investigar y documentar:
+· socket_create.
+    · Crea un socket: socket_create(int $domain, int $type, int $protocol): Socket|false;
+      
+      · Crea un punto de comunicación (un socket) y devuelve una instancia de Socket. Una 
+      conexión típica de red está compuesta por dos sockets: cliente y servidor.
+      ref: https://www.php.net/manual/es/function.socket-create.php
+
+· socket_bind.
+    · Asocia un nombre a un socket: socket_bind(Socket $socket, string $address, int $port = 0): bool;
+
+      · Asocia el nombre proporcionado por address a la interfaz de conexión descrita por
+      socket. Debe realizarse antes de establecer la conexión usando socket_listen.
+      ref: https://www.php.net/manual/es/function.socket-bind.php
+
+· socket_listen.
+    · Espera una coneción en un socket: socket_listen(Socket $socket, int $backlog = 5): bool;
+      
+      · Una vez que el socket socket ha sido creado con la función socket_create() y vinculado
+      a un nombre con socket_bind(), puede ponerse en espera.
+      ref: https://www.php.net/manual/es/function.socket-listen.php
+
+· socket_accept.
+    · Acepta una conexión en un socket: socket_accept(Socket $socket): Socket|false;
+      · Una vez creado socket_create() y vinculado a un nombre socket_bind(), y puesto en escucha 
+      socket_listen(), socket_accept() acepta una conexión entrante.
+      ref: https://www.php.net/manual/es/function.socket-accept.php
+
+· socket_read.
+    · Lee los datos de un socket: socket_read(Socket $socket, int $length, int $mode = PHP_BINARY_REAAD):
+      string|false;
+      · Lee los datos desde la instancia creada.
+      ref: https://www.php.net/manual/es/function.socket-read.php
+
+· socket_write.
+    · Escribe un socket: socket_write(Socket $socket, string $data, int $mode = PHP_BINARY_WRITE):
+      bool;
+    · Escribe en un socket los datos del buffer data.
+    ref: https://www.php.net/manual/es/function.socket-write.php
+
+· socket_close.
+    · Cierra una instancia de Socket: socket_close(Socket $socket): void;
+    · cierra la instancia socket creada.
+    ref: https://www.php.net/manual/es/function.socket-close.php
+
+3️⃣ Concurrencia en PHP (muy importante)
+
+· PHP NO tiene multithreading nativo.
+· pthreads está:
+    · Deprecated = obsoleto.
+    · Limitado.
+    · No disponible en entornos comunes.
+· Nuestro runtime será:
+    · Síncrono.
+    · Secuencial.
+    · Una conexión a la vez.
+
+4️⃣ Gestión de memoria y procesos largos.
+
+· PHP puede consumir memoria si no se libera bien.
+· Riesgo de leaks en procesos largos.
+· Necesidad de:
+    · Cerrar sockets.
+    · No acumular estado.
+    · Mantener objetos simples.
+
+5️⃣ Señales y apagado limpio (conceptual)
+
+· Este Runtime debe poder:
+    · detenerse.
+    · Cerrar socket.
+    · Salir limpiamente.
+
+6️⃣ Conclusion de la Investigación
+
+PHP es valido para construir un micro runtime educativo basado en sockets, siempre que se asuman
+sus límites de concurrencia, memoria y modelo de ejecución. El proyecto se diseña conscientemente 
+de esas restricciones.
+
