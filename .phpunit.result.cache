@@ -1,0 +1,1 @@
+{"version":2,"defects":[],"times":{"Tests\\Http\\RouterTest::test_it_returns_for_known_route":0.001,"Tests\\Http\\RouterTest::test_it_returns404_for_unknown_route":0.001,"MicroRuntime\\Tests\\Http\\RequestTest::test_it_parses_method_and_uri":0.002,"MicroRuntime\\Tests\\Http\\RequestTest::test_it_returns_null_for_missing_header":0.001}}
